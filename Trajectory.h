@@ -46,7 +46,7 @@ double S_FunctionDerivative(double S, double X, double Y)
 bool S_NewtonRaphsonMethod(double X, double Y, double S_A, double S_B, double& Result)
 {
 	double S_0 = (S_A + S_B) / 2.0;
-	double S_1 = 0;
+	double S_1 = 0.0;
 	const double TolerableError = KINDA_SMALL_NUMBER;
 	int32 IterationIndex = 0;
 
@@ -57,11 +57,11 @@ bool S_NewtonRaphsonMethod(double X, double Y, double S_A, double S_B, double& R
 	{
 		const double MainFuncResult = S_Function(S_0, X, Y);
 
-		// https://stackoverflow.com/questions/570669/checking-if-a-double-or-float-is-nan-in-c
-		if (MainFuncResult != MainFuncResult)
+		if (MainFuncResult != MainFuncResult || MainFuncResult >= DBL_MAX || MainFuncResult <= -DBL_MAX)
 		{
-			// Next NaN, return current result
-			return ClosestResult;
+			// Next undefined, return this
+			Result = ClosestSolution;
+			return true;
 		}
 
 		if (FMath::Abs(MainFuncResult) <= TolerableError)
@@ -116,14 +116,8 @@ bool S_NewtonRaphsonMethod(double X, double Y, double S_A, double S_B, double& R
 
 		if (IterationIndex > NR_MaxIterations)
 		{
-			if (FMath::Abs(ClosestResult) < 1.0)
-			{
-				Result = ClosestSolution;
-				return true;
-			}
-
-			checkf(false, TEXT("Not convergent."));
-			return false;
+			Result = ClosestSolution;
+			return true;
 		}
 	}
 }
@@ -148,10 +142,10 @@ double SMax_FunctionDerivative(double S, double X, double Y)
 }
 
 // Based on https://www.codesansar.com/numerical-methods/newton-raphson-method-using-c-plus-plus.htm
-bool SMax_NewtonRaphsonMethod(double X, double Y, double& Result, double InitialGuess)
+bool SMax_NewtonRaphsonMethod(double X, double Y, double& Result)
 {
-	double S_0 = InitialGuess;
-	double S_1 = 0;
+	double S_0 = 0.0;
+	double S_1 = 0.0;
 	const double TolerableError = KINDA_SMALL_NUMBER;
 	int32 IterationIndex = 0;
 
@@ -180,11 +174,11 @@ bool SMax_NewtonRaphsonMethod(double X, double Y, double& Result, double Initial
 
 		MainFuncResult = SMax_Function(S_1, X, Y);
 
-		// https://stackoverflow.com/questions/570669/checking-if-a-double-or-float-is-nan-in-c
-		if (MainFuncResult != MainFuncResult)
+		if (MainFuncResult != MainFuncResult || MainFuncResult >= DBL_MAX || MainFuncResult <= -DBL_MAX)
 		{
-			// Next NaN, return current result
-			return ClosestResult;
+			// Next undefined, return this
+			Result = ClosestSolution;
+			return true;
 		}
 
 		const double MainFuncResultAbs = FMath::Abs(MainFuncResult);
@@ -200,14 +194,8 @@ bool SMax_NewtonRaphsonMethod(double X, double Y, double& Result, double Initial
 
 		if (IterationIndex > NR_MaxIterations)
 		{
-			if (FMath::Abs(ClosestResult) < 1.0)
-			{
-				Result = ClosestSolution;
-				return true;
-			}
-
-			checkf(false, TEXT("Not convergent."));
-			return false;
+			Result = ClosestSolution;
+			return true;
 		}
 	}
 }
@@ -236,7 +224,7 @@ FVector CalculateAutoNavigationAcceleration(const FVector& SpaceshipLocation, co
 
 	if (Y < -1)
 	{
-		if (SMax_NewtonRaphsonMethod(X, Y, S_Max, 0))
+		if (SMax_NewtonRaphsonMethod(X, Y, S_Max))
 		{
 			bConsiderS_Max = true;
 			S_B = FMath::Min(S_B, S_Max);
